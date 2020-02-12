@@ -76,6 +76,7 @@ pub fn video_command(player: &String, path: &String) -> Result<Command, Box<dyn 
     Ok(com)
 }
 
+#[cfg(target_os="unix")]
 pub fn play_video(player: &String, path: &String) -> Result<(), Box<dyn Error>> {
     use std::os::unix::process::CommandExt;
     video_command(player, path)?.exec();
