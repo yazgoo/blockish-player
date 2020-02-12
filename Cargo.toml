@@ -4,6 +4,12 @@ version = "0.0.1"
 authors = ["yazgoo <yazgoo@gmail.com>"]
 edition = "2018"
 license = "MIT"
+description = "wrapper to play videos in the terminal with unicode chars"
+readme = "README.md"
+homepage = "https://github.com/yazgoo/blockish-player"
+repository = "https://github.com/yazgoo/blockish-player"
+keywords = ["unicode", "video", "player"]
+categories = ["command-line-utilities"]
 
 [lib]
 path = "src/lib.rs"
