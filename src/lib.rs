@@ -1,24 +1,26 @@
-extern crate regex;
-extern crate glob;
 extern crate crossterm;
-use std::process::Command;
-use std::error::Error;
-use std::env;
-use regex::Regex;
+extern crate glob;
+extern crate regex;
 use glob::glob;
+use regex::Regex;
+use std::env;
+use std::error::Error;
+use std::process::Command;
 
 fn find_lib(lib: String) -> Result<String, Box<dyn Error>> {
     let output = Command::new("ldconfig").arg("-p").output()?;
     let pattern = Regex::new(&format!(r"^[\s]*lib{}.*.so .* ([^ ]+)$", lib))?;
     let list = String::from_utf8(output.stdout)?
         .lines()
-        .filter_map(|line| pattern.captures(line) )
+        .filter_map(|line| pattern.captures(line))
         .map(|cap| cap[1].to_string())
         .collect::<Vec<String>>();
     if list.is_empty() {
-        Err(std::boxed::Box::new(std::io::Error::new(std::io::ErrorKind::Other, format!("failed to load lib {}", lib))))
-    }
-    else {
+        Err(std::boxed::Box::new(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            format!("failed to load lib {}", lib),
+        )))
+    } else {
         Ok(list[0].to_string())
     }
 }
@@ -26,7 +28,7 @@ fn find_lib(lib: String) -> Result<String, Box<dyn Error>> {
 pub fn ld_preload_path(player: &String) -> Result<String, Box<dyn Error>> {
     let exe = env::current_exe()?;
     let bin_dir = exe.parent().ok_or("bin_dir")?.to_str().ok_or("to str")?;
-    let mut ld_preload : String = "".to_string();
+    let mut ld_preload: String = "".to_string();
     let mut found = false;
     let pattern = bin_dir.to_string() + "/**/libblockish_caca*.so";
     for entry in glob(&(pattern))? {
@@ -47,7 +49,6 @@ pub fn ld_preload_path(player: &String) -> Result<String, Box<dyn Error>> {
     Ok(ld_preload)
 }
 
-
 pub fn video_command(player: &String, path: &String) -> Result<Command, Box<dyn Error>> {
     let mut quiet = "-quiet";
     let mut vo = "-vo";
@@ -57,15 +58,14 @@ pub fn video_command(player: &String, path: &String) -> Result<Command, Box<dyn 
     let mut bheight = 20;
     if let Ok(res) = crossterm::terminal::size() {
         bwidth = res.0;
-        bheight = res.1 
+        bheight = res.1
     }
     if player == "cvlc" {
         quiet = "--quiet";
         vo = "-V";
         com.env("DISPLAY", "");
     }
-    com
-        .env("COLUNMS", bwidth.to_string())
+    com.env("COLUNMS", bwidth.to_string())
         .env("LINES", bheight.to_string())
         .env("CACA_DRIVER", "raw")
         .env("LD_PRELOAD", ld_preload)
@@ -76,7 +76,7 @@ pub fn video_command(player: &String, path: &String) -> Result<Command, Box<dyn 
     Ok(com)
 }
 
-#[cfg(target_os="unix")]
+#[cfg(target_family = "unix")]
 pub fn play_video(player: &String, path: &String) -> Result<(), Box<dyn Error>> {
     use std::os::unix::process::CommandExt;
     video_command(player, path)?.exec();
